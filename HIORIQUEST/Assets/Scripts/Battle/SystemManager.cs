@@ -5,15 +5,13 @@ using UnityEngine;
 //中断再開といったシステム面の管理
 public class SystemManager : MonoBehaviour
 {
-    // Start is called before the first frame update
     void Start()
     {
-        
+        //BGMやSEの大きさを取得
     }
 
-    // Update is called once per frame
-    void Update()
+    public void CloseConfig()
     {
-        
+        gameObject.SetActive(false);
     }
 }

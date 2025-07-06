@@ -9,7 +9,7 @@ public class PrologueManager : MonoBehaviour
 {
     [SerializeField] private GameObject black;
     [SerializeField] private Text prologueTextBox;
-    private string normalText = "ある日、ツバサ村に突如として魔王めぐるが襲来した。\n\n荒らされる田畑、逃げ惑う人々……。\n\n被害者が出るのも時間の問題と誰もが思い始めた頃、\n\n颯爽と現れたのが──そう！　勇者灯織と僧侶真乃である！！！\n\n\n「えっと……、本当に私たちで良いんですか……？」\n\n「まだ旅を始めたばかりだけど……きっと大丈夫！むん！」\n\n「…………お守り、いっぱい持っていこう」";
+    private string normalText = "ある日、ツバサ村に突如として魔王めぐるが襲来した。\n\n荒らされる田畑、逃げ惑う人々……。\n\n被害者が出るのも時間の問題と誰もが思い始めた頃、\n\n颯爽と現れたのが──そう！　勇者灯織と僧侶真乃である！！！\n\n\n「えっと……、本当に私たちで良いんですか……？」\n\n「まだ旅を始めたばかりだけど……きっと大丈夫！むんっ！」\n\n「…………お守り、いっぱい持っていこう」";
     private string hardText = "";
     private bool allDisplayed = false;
     [SerializeField] private TMP_Text guideTextBox;
