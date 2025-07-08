@@ -8,6 +8,7 @@ public class EnhanceManager
         public int hp = 0;
         public int atk = 0;
         public int damageCut = 0;
+        public int mp = 0;
     }
     public static EnhanceStatus enhanceStatus = new();
 
@@ -50,5 +51,13 @@ public class EnhanceManager
     private static void Enhance0()
     {
         enhanceStatus.hp += 2000;
+    }
+
+    public static void Initialize()
+    {
+        enhanceStatus = new();
+        enhanceSkill = new();
+        enhanceAction = new();
+        enhanceOther = new();
     }
 }

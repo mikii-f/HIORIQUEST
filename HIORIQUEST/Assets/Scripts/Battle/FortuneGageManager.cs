@@ -13,7 +13,7 @@ public class FortuneGageManager : MonoBehaviour
     private bool isMove = false;
     private BattleManager battleManager;
 
-    void Start()
+    void Awake()
     {
         battleManager = GameObject.Find("BattleManager").GetComponent<BattleManager>();
     }

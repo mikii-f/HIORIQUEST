@@ -17,6 +17,7 @@ public class BattleManager : MonoBehaviour
     [HideInInspector] public EnemyManager enemyManager;
     [SerializeField] private PlayerManager playerManager;
     [SerializeField] private SkillPanelManager skillPanelManager;
+    [SerializeField] private StunEnemyManager stunEnemyManager;
     [SerializeField] private GameObject buttonHide;
 
     //占いフェーズ系
@@ -32,8 +33,12 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private RectTransform cardParent;
     private List<CardManager> cards = new();
     [SerializeField] private GameObject enemyDetailPanel;
+    [SerializeField] private GameObject hioriDetailPanel;
     [SerializeField] private GameObject skillPanel;
+    [SerializeField] private GameObject skill4Icon;
+    [SerializeField] private GameObject stunEnemyPanel;
     private List<int> hioriAction = new();
+    private bool isSkillUse = false;
 
     //ゲーム進行系
     private bool isWin = false;
@@ -55,7 +60,9 @@ public class BattleManager : MonoBehaviour
         fortuneTellingPhase.SetActive(false);
         actionPhase.SetActive(false);
         enemyDetailPanel.SetActive(false);
+        hioriDetailPanel.SetActive(false);
         skillPanel.SetActive(false);
+        stunEnemyPanel.SetActive(false);
         configPanel.SetActive(false);
         StartCoroutine(StartBattle());
     }
@@ -161,10 +168,60 @@ public class BattleManager : MonoBehaviour
     {
         enemyDetailPanel.SetActive(true);
     }
+    public void DisplayHioriDetail()
+    {
+        hioriDetailPanel.SetActive(true);
+    }
     public void DisplaySkillPanel()
     {
         skillPanel.SetActive(true);
     }
+
+    //スキルの内部処理およびUI操作が必要な部分(演出はSkillPanelManagerが担当)
+    public void Skill1()
+    {
+        playerManager.MP -= playerManager.skills[0].useMP;
+        isSkillUse = true;
+        playerManager.Skill1();
+    }
+    public void Skill2()
+    {
+        playerManager.MP -= playerManager.skills[1].useMP;
+        isSkillUse = true;
+        stunEnemyPanel.SetActive(true);
+        stunEnemyManager.SetEnemyCard(enemyAction.Count, 1, enemyAction, fortunes);
+    }
+    public void Skill3()
+    {
+        playerManager.MP -= playerManager.skills[2].useMP;
+        isSkillUse = true;
+        PlayerStateManager.AttackBD attackBD = new()
+        {
+            turn = 2,
+            value = 30
+        };
+        attackBD.Apply();
+        PlayerStateManager.buffDebuffs.Add(attackBD);
+        PlayerStateManager.DamageCutBD damageCutBD = new()
+        {
+            turn = 2,
+            value = 20
+        };
+        damageCutBD.Apply();
+        PlayerStateManager.buffDebuffs.Add(damageCutBD);
+        playerManager.UpdateStateIcon();
+    }
+    public void Skill4()
+    {
+        isSkillUse = true;
+        skill4Icon.SetActive(true);
+    }
+    public void StunEnemy(int n)
+    {
+        enemyAction[n] = 4;
+        cards[n].CardSet(4);
+    }
+
     public void ActionPhaseOnOff()
     {
         actionPhase.SetActive(!actionPhase.activeSelf);
@@ -193,15 +250,31 @@ public class BattleManager : MonoBehaviour
                 break;
             }
         }
+        //まのびーむ発動
+        if (skill4Icon.activeSelf && (!isWin && !isLose))
+        {
+            skill4Icon.SetActive(false);
+            playerManager.MP -= playerManager.skills[3].useMP;
+            enemyManager.Damage(playerManager.CalculateAttack() + 2000);
+            yield return new WaitForSeconds(0.5f);
+        }
+        //暫定 負けた場合はプラスしない その他演出的に呼び出しタイミングを変えるべき場合も想定
+        if (!isSkillUse)
+        {
+            playerManager.MP++;
+        }
         if (!isWin && !isLose)
         {
             yield return new WaitForSeconds(1);
+            turn++;
+            turnText.text = turn.ToString() + "ターン目";
             fortunes.Clear();
             enemyAction.Clear();
             hioriAction.Clear();
+            isSkillUse = false;
             skillPanelManager.skillButtonMask.SetActive(false);
-            turn++;
-            turnText.text = turn.ToString() + "ターン目";
+            PlayerStateManager.PassTurn();
+            playerManager.UpdateStateIcon();
             yield return new WaitForSeconds(1);
             fortuneTellingPhase.SetActive(true);
             StartCoroutine(FortuneTelling(3)); //本来は敵に応じてゲージの本数を変更
@@ -277,16 +350,24 @@ public class BattleManager : MonoBehaviour
         isWin = true;
         yield return new WaitForSeconds(1);
         Manager.battleCount++;
-        Manager.currentHp = playerManager.hp;
+        Manager.currentHp = playerManager.HP;
+        Manager.currentMp = playerManager.MP;
+        skill4Icon.SetActive(false);
         if (Manager.battleCount == 7)
         {
             //暫定
-            Manager.battleCount = 1;
-            Manager.currentHp = 5000;
+            Image b = black.GetComponent<Image>();
+            RectTransform rect = black.GetComponent<RectTransform>();
+            b.color = Color.clear;
+            rect.anchoredPosition = Vector2.zero;
+            yield return StartCoroutine(CommonSystem.FadeOut(black, 1));
+            Manager.Initialize();
             SceneManager.LoadScene("TitleScene");
         }
         else
         {
+            PlayerStateManager.PassTurn();
+            playerManager.UpdateStateIcon();
             yield return StartCoroutine(CommonSystem.WipeOut(black));
             yield return new WaitForSeconds(0.5f);
             SceneManager.LoadScene("NormalScene");
@@ -297,12 +378,13 @@ public class BattleManager : MonoBehaviour
         isLose = true;
         yield return new WaitForSeconds(1);
 
+        //暫定(負けてもリザルト画面に進めるようにする)
         Image b = black.GetComponent<Image>();
         RectTransform rect = black.GetComponent<RectTransform>();
         b.color = Color.clear;
         rect.anchoredPosition = Vector2.zero;
         yield return StartCoroutine(CommonSystem.FadeOut(black, 1));
-        //暫定(負けてもリザルト画面に進めるようにする)
+        Manager.Initialize();
         SceneManager.LoadScene("TitleScene");
     }
 

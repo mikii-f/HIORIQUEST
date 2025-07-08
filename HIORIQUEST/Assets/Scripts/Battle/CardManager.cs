@@ -57,6 +57,7 @@ public class CardManager : MonoBehaviour
                 break;
             default:
                 playerCard.sprite = null;
+                Debug.Log("Card index error");
                 break;
         }
     }

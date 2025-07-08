@@ -11,27 +11,28 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] private TMP_Text hpText;
     [SerializeField] private Text attackText;
     private BattleManager battleManager;
+    public int HP { set { hp = Mathf.Clamp(value, 0, (int)hpSlider.maxValue); UpdateHpSlider();  } get { return hp; } }
 
     //敵生成時にBattleManagerから呼び出す
     public void StatusSet(int mHp, int atk, BattleManager bManager)
     {
         hpSlider.maxValue = mHp;
-        hp = mHp;
-        UpdateHp();
+        HP = mHp;
         attack = atk;
         attackText.text = attack.ToString();
         battleManager = bManager;
     }
 
-    private void UpdateHp()
+    private void UpdateHpSlider()
     {
         hpSlider.value = hp;
         hpText.text = hp.ToString() + "/" + hpSlider.maxValue.ToString();
     }
-    public void Damage(int damage)
+
+    //バフやデバフの種類に応じた乗算加算の区別を敵味方で共有する場合、係数ごと引数に入れる
+    public void Damage(int playerAttack)
     {
-        hp -= Mathf.Min(hp, damage);
-        UpdateHp();
+        HP -= CalculateDamage(playerAttack);
         if (hp == 0)
         {
             //敵撃破時の処理
@@ -39,17 +40,27 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
-    //ダメージ計算系(本来は色々係数などがかかる)
+    //受けるダメージの計算(行動前にダメージ予測を出すため)
+    public int CalculateDamage(int playerAttack)
+    {
+
+        return playerAttack;
+    }
+
+    //勇者に与えるダメージの計算
     public int Attack()
     {
+
         return attack;
     }
     public int Break()
     {
+
         return attack * 3 / 2;
     }
     public int Guard()
     {
+
         return attack * 3 / 2;
     }
 }
